@@ -2,7 +2,6 @@ const express = require("express");
 const db = require("./userDb");
 const router = express.Router();
 
-
 router.get("/", (req, res) => {
   // do your magic!
   db.get()
@@ -12,8 +11,23 @@ router.get("/", (req, res) => {
 
 router.post("/", (req, res) => {
   // do your magic!
+  db.insert(req.body)
+    .then(user => {
+      if (user) {
+        res.status(201).json(user);
+      } else {
+        res.status(400).json({
+          message: "missing required name field"
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        message: "Cant add a new user"
+      });
+    });
 });
-
 
 router.get("/:id", (req, res) => {
   const { id } = req.params;
@@ -35,15 +49,9 @@ router.get("/:id", (req, res) => {
     });
 });
 
-
-
-
 router.post("/:id/posts", (req, res) => {
   // do your magic!
 });
-
-
-
 
 router.get("/:id/posts", (req, res) => {
   // do your magic!
