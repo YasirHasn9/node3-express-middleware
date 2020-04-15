@@ -2,13 +2,6 @@ const express = require("express");
 const db = require("./userDb");
 const router = express.Router();
 
-router.post("/", (req, res) => {
-  // do your magic!
-});
-
-router.post("/:id/posts", (req, res) => {
-  // do your magic!
-});
 
 router.get("/", (req, res) => {
   // do your magic!
@@ -17,9 +10,40 @@ router.get("/", (req, res) => {
     .catch();
 });
 
-router.get("/:id", (req, res) => {
+router.post("/", (req, res) => {
   // do your magic!
 });
+
+
+router.get("/:id", (req, res) => {
+  const { id } = req.params;
+  db.getById(id)
+    .then(user => {
+      if (user) {
+        res.json(user);
+      } else {
+        res.status(400).send({
+          message: "invalid user id"
+        });
+      }
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        message: "Error retrieving the user"
+      });
+    });
+});
+
+
+
+
+router.post("/:id/posts", (req, res) => {
+  // do your magic!
+});
+
+
+
 
 router.get("/:id/posts", (req, res) => {
   // do your magic!
