@@ -2,12 +2,13 @@
 const express = require("express");
 const app = express();
 const useServer = require("./server");
+const usersRouter = require("./users/userRouter")
 
 const port = 4000;
 
 app.use(express.json());
 app.use("/", useServer);
-
+app.use("/users", usersRouter);
 
 app.listen(port, () => {
   console.log(`The server is running on http://localhost:${port}`);
