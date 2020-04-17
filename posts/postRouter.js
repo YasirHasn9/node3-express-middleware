@@ -14,14 +14,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-
-router.get("/:id", async (req, res) => {
-  // do your magic!
-  if (!req.params.id) {
-    return res.status(404).json({
-      message: "This post cant be found"
-    });
-  }
+router.get("/:id", validatePostId(), async (req, res) => {
   const user = await postsDb.getById(req.params.id);
   res.json(user);
 });
@@ -50,8 +43,22 @@ router.delete("/:id", async (req, res) => {
 
 // custom middleware
 
-function validatePostId(req, res, next) {
+function validatePostId() {
   // do your magic!
+  return async (req, res, next) => {
+    try {
+      let user = await postsDb.getById(req.params.id);
+      if (user) {
+        next();
+      } else {
+        res.status(500).json({
+          message: "Not a valid ID "
+        });
+      }
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 module.exports = router;
