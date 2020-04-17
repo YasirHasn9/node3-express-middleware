@@ -9,7 +9,7 @@ router.get("/", (req, res) => {
     .catch();
 });
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
   // do your magic!
   db.insert(req.body)
     .then(user => {
@@ -49,15 +49,36 @@ router.get("/:id", (req, res) => {
     });
 });
 
-router.post("/:id/posts", (req, res) => {
-  // do your magic!
-});
-
 router.get("/:id/posts", (req, res) => {
   // do your magic!
+  if (!req.params.id) {
+    return res.status(404).json({ message: "Can't be found" });
+  }
+  db.getUserPosts(req.params.id)
+    .then(user => {
+      res.json(user);
+    })
+    .catch(err => {
+      console.log(err);
+      res.status(500).json({
+        message: "can't retrieve the posts for this user"
+      });
+    });
+});
+router.delete("/:id", async (req, res) => {
+  // do your magic!
+  let { id } = req.params;
+  if (!id) {
+    return res.status(400).json({
+      message: "This id is not valid "
+    });
+  }
+
+  let user = await db.remove(id);
+  res.status(500).json(user);
 });
 
-router.delete("/:id", (req, res) => {
+router.post("/:id/posts", (req, res) => {
   // do your magic!
 });
 
