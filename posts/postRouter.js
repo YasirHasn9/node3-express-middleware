@@ -19,24 +19,14 @@ router.get("/:id", validatePostId(), async (req, res) => {
   res.json(user);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", validatePostId(), async (req, res) => {
   // do your magic!
-  if (!req.params.id) {
-    return res.status(404).json({
-      message: "This post cant be found"
-    });
-  }
   const user = await postsDb.update(req.params.id, req.body);
   res.json(user);
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", validatePostId(), async (req, res) => {
   // do your magic!
-  if (!req.params.id) {
-    return res.status(404).json({
-      message: "This post cant be deleted"
-    });
-  }
   const user = await postsDb.remove(req.params.id);
   res.json(user);
 });
