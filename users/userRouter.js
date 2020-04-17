@@ -1,17 +1,20 @@
 const express = require("express");
-const db = require("./userDb");
+const usersDb = require("./userDb");
+const postsDb = require("../posts/postDb");
 const router = express.Router();
 
 router.get("/", (req, res) => {
   // do your magic!
-  db.get()
+  usersDb
+    .get()
     .then(users => res.status(200).json(users))
     .catch();
 });
 
 router.post("/", async (req, res) => {
   // do your magic!
-  db.insert(req.body)
+  usersDb
+    .insert(req.body)
     .then(user => {
       if (user) {
         res.status(201).json(user);
@@ -31,7 +34,8 @@ router.post("/", async (req, res) => {
 
 router.get("/:id", (req, res) => {
   const { id } = req.params;
-  db.getById(id)
+  usersDb
+    .getById(id)
     .then(user => {
       if (user) {
         res.json(user);
@@ -54,7 +58,8 @@ router.get("/:id/posts", (req, res) => {
   if (!req.params.id) {
     return res.status(404).json({ message: "Can't be found" });
   }
-  db.getUserPosts(req.params.id)
+  usersDb
+    .getUserPosts(req.params.id)
     .then(user => {
       res.json(user);
     })
@@ -75,7 +80,7 @@ router.delete("/:id", async (req, res) => {
     });
   }
 
-  let user = await db.remove(id);
+  let user = await usersDb.remove(id);
   res.status(500).json(user);
 });
 
@@ -87,15 +92,21 @@ router.put("/:id", async (req, res) => {
       message: "This id is not valid , can't update this user"
     });
   }
-  let user = await db.update(id, req.body);
+  let user = await usersDb.update(id, req.body);
   res.status(201).json(user);
 });
 
-router.post("/:id/posts", (req, res) => {
+router.post("/:id/posts", async (req, res) => {
   // do your magic!
+  let user = await usersDb.getById(id);
+  if (!user) {
+    return res.status(400).json({
+      message: "Can't be found"
+    });
+  }
+  let newUser = await postsDb.insert(req.body);
+  res.status(201).json(newUser);
 });
-
-
 
 //custom middleware
 
