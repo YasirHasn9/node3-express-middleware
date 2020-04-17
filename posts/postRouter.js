@@ -14,6 +14,7 @@ router.get("/", async (req, res) => {
   }
 });
 
+
 router.get("/:id", async (req, res) => {
   // do your magic!
   if (!req.params.id) {
@@ -36,8 +37,15 @@ router.put("/:id", async (req, res) => {
   res.json(user);
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", async (req, res) => {
   // do your magic!
+  if (!req.params.id) {
+    return res.status(404).json({
+      message: "This post cant be deleted"
+    });
+  }
+  const user = await postsDb.remove(req.params.id);
+  res.json(user);
 });
 
 // custom middleware
