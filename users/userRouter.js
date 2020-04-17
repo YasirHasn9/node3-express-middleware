@@ -11,85 +11,72 @@ router.get("/", (req, res) => {
     .catch();
 });
 
-router.post("/", async (req, res) => {
-  // do your magic!
-  usersDb
-    .insert(req.body)
-    .then(user => {
-      if (user) {
-        res.status(201).json(user);
-      } else {
-        res.status(400).json({
-          message: "missing required name field"
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        message: "Cant add a new user"
-      });
-    });
-});
-
-router.get("/:id", validateUserId(), async (req, res, next) => {
+router.post("/", validatePost(), async (req, res, next) => {
   try {
-    let user = await usersDb.getById(req.params.id);
-    res.json(user);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get("/:id/posts", validateUserId(), async (req, res, next) => {
-  // do your magic!
-  try {
-    let posts = await usersDb.getUserPosts(req.params.id);
-    res.json(posts);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.delete("/:id", validateUserId(), async (req, res, next) => {
-  // do your magic!
-  try {
-    let user = await usersDb.remove(id);
-    res.status(500).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.put("/:id", validateUserId(), async (req, res, next) => {
-  // do your magic!
-  try {
-    let user = await usersDb.update(id, req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.post("/:id/posts", validateUserId(), async (req, res, next) => {
-  // do your magic!
-  try {
-    let newUser = await postsDb.insert(req.body);
+    let newUser = usersDb.insert(req.body);
     res.status(201).json(newUser);
   } catch (err) {
+    console.log(err);
     next(err);
   }
+});
+
+router.get("/:id", validateUserId(), (req, res) => {
+  res.json(req.user);
+});
+
+router.get("/:id/posts", validateUserId(), validateUser(), async (req, res) => {
+  // do your magic!
+  let posts = await usersDb.getUserPosts(req.params.id);
+  res.json(posts);
+});
+
+router.delete(
+  "/:id",
+  validateUser(),
+  validateUserId(),
+  async (req, res, next) => {
+    // do your magic!
+    try {
+      let user = await usersDb.remove(req.params.id);
+      res.status(201).json(user);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.put("/:id", validateUserId(), validateUser(), async (req, res, next) => {
+  // do your magic!
+  let user = await usersDb.update(req.params.id, req.body);
+  res.status(201).json(user);
+});
+
+router.post("/:id/posts", validateUserId(), validatePost(), (req, res) => {
+  const body = {
+    text: req.body.text,
+    user_id: req.user.id
+  };
+
+  usersDb
+    .insert(body)
+    .then(post => {
+      res.status(201).json(post);
+    })
+    .catch(error => {
+      next(error);
+    });
 });
 
 //custom middleware
 
 function validateUserId() {
   // do your magic!
-
   return async (req, res, next) => {
     try {
       let user = await usersDb.getById(req.params.id);
       if (user) {
+        req.user = user;
         next();
       } else {
         res.status(500).json({
@@ -103,12 +90,49 @@ function validateUserId() {
   };
 }
 
-function validateUser(req, res, next) {
+function validateUser() {
   // do your magic!
+  return async (req, res, next) => {
+    try {
+      let user = await usersDb.getById(req.params.id);
+      if (user) {
+        next();
+      } else {
+        return res.status(500).json({
+          message: "There is no user"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
 }
 
-function validatePost(req, res, next) {
+function validatePost() {
   // do your magic!
+  // return (req, res, next) => {
+  //   if (!req.body.name ) {
+  //     res.status(401).json({
+  //       message: "There is no name to add"
+  //     });
+  //   } else {
+  //     next();
+  //   }
+  // };
+  return (req, res, next) => {
+    if (!req.body.name) {
+      return res.status(400).json({ message: "missing post data" });
+    } else {
+      next();
+    }
+    if (!req.body.text) {
+      return res.status(400).json({ message: "missing required text field" });
+    } else {
+      next();
+    }
+    next();
+  };
 }
 
 module.exports = router;
