@@ -32,86 +32,75 @@ router.post("/", async (req, res) => {
     });
 });
 
-router.get("/:id", (req, res) => {
-  const { id } = req.params;
-  usersDb
-    .getById(id)
-    .then(user => {
-      if (user) {
-        res.json(user);
-      } else {
-        res.status(400).send({
-          message: "invalid user id"
-        });
-      }
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        message: "Error retrieving the user"
-      });
-    });
+router.get("/:id", validateUserId(), async (req, res, next) => {
+  try {
+    let user = await usersDb.getById(req.params.id);
+    res.json(user);
+  } catch (err) {
+    next(err);
+  }
 });
 
-router.get("/:id/posts", (req, res) => {
+router.get("/:id/posts", validateUserId(), async (req, res, next) => {
   // do your magic!
-  if (!req.params.id) {
-    return res.status(404).json({ message: "Can't be found" });
+  try {
+    let posts = await usersDb.getUserPosts(req.params.id);
+    res.json(posts);
+  } catch (err) {
+    next(err);
   }
-  usersDb
-    .getUserPosts(req.params.id)
-    .then(user => {
-      res.json(user);
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        message: "can't retrieve the posts for this user"
-      });
-    });
 });
 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", validateUserId(), async (req, res, next) => {
   // do your magic!
-  let { id } = req.params;
-  if (!id) {
-    return res.status(400).json({
-      message: "This id is not valid "
-    });
+  try {
+    let user = await usersDb.remove(id);
+    res.status(500).json(user);
+  } catch (err) {
+    next(err);
   }
-
-  let user = await usersDb.remove(id);
-  res.status(500).json(user);
 });
 
-router.put("/:id", async (req, res) => {
+router.put("/:id", validateUserId(), async (req, res, next) => {
   // do your magic!
-  let { id } = req.params;
-  if (!id) {
-    return res.status(400).json({
-      message: "This id is not valid , can't update this user"
-    });
+  try {
+    let user = await usersDb.update(id, req.body);
+    res.status(201).json(user);
+  } catch (err) {
+    next(err);
   }
-  let user = await usersDb.update(id, req.body);
-  res.status(201).json(user);
 });
 
-router.post("/:id/posts", async (req, res) => {
+router.post("/:id/posts", validateUserId(), async (req, res, next) => {
   // do your magic!
-  let user = await usersDb.getById(id);
-  if (!user) {
-    return res.status(400).json({
-      message: "Can't be found"
-    });
+  try {
+    let newUser = await postsDb.insert(req.body);
+    res.status(201).json(newUser);
+  } catch (err) {
+    next(err);
   }
-  let newUser = await postsDb.insert(req.body);
-  res.status(201).json(newUser);
 });
 
 //custom middleware
 
-function validateUserId(req, res, next) {
+function validateUserId() {
   // do your magic!
+
+  return async (req, res, next) => {
+    try {
+      let user = await usersDb.getById(req.params.id);
+      if (user) {
+        next();
+      } else {
+        res.status(500).json({
+          message: "Not a valid ID"
+        });
+      }
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  };
 }
 
 function validateUser(req, res, next) {
