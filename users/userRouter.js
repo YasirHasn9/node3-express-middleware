@@ -65,6 +65,7 @@ router.get("/:id/posts", (req, res) => {
       });
     });
 });
+
 router.delete("/:id", async (req, res) => {
   // do your magic!
   let { id } = req.params;
@@ -78,13 +79,23 @@ router.delete("/:id", async (req, res) => {
   res.status(500).json(user);
 });
 
+router.put("/:id", async (req, res) => {
+  // do your magic!
+  let { id } = req.params;
+  if (!id) {
+    return res.status(400).json({
+      message: "This id is not valid , can't update this user"
+    });
+  }
+  let user = await db.update(id, req.body);
+  res.status(201).json(user);
+});
+
 router.post("/:id/posts", (req, res) => {
   // do your magic!
 });
 
-router.put("/:id", (req, res) => {
-  // do your magic!
-});
+
 
 //custom middleware
 
