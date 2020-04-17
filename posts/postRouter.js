@@ -15,21 +15,28 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
-    // do your magic!
-    if (!req.params.id) {
-      return res.status(404).json({
-        message: "This post cant be found"
-      });
-    }
-    const user = await postsDb.getById(req.params.id);
-    res.json(user);
+  // do your magic!
+  if (!req.params.id) {
+    return res.status(404).json({
+      message: "This post cant be found"
+    });
+  }
+  const user = await postsDb.getById(req.params.id);
+  res.json(user);
+});
+
+router.put("/:id", async (req, res) => {
+  // do your magic!
+  if (!req.params.id) {
+    return res.status(404).json({
+      message: "This post cant be found"
+    });
+  }
+  const user = await postsDb.update(req.params.id, req.body);
+  res.json(user);
 });
 
 router.delete("/:id", (req, res) => {
-  // do your magic!
-});
-
-router.put("/:id", (req, res) => {
   // do your magic!
 });
 
